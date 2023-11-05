@@ -33,8 +33,9 @@ INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_False = STRAT_OSCILLATOR_RANGE;
 INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_True = STRAT_MFI;                // Strategy when condition is True
 INPUT2 ENUM_STG_META_MA_CONDITIONS_COND Meta_MA_Conditions_Condition =
     STG_META_MA_CONDITIONS_COND_IN_PRICE_RANGE;  // MA condition
-INPUT2 ENUM_STG_META_MA_CONDITIONS_TYPE Meta_MA_Conditions_Type = STG_META_MA_CONDITIONS_TYPE_MA;  // Indicator MA type
-INPUT2 ENUM_TIMEFRAMES Meta_MA_Conditions_Tf = PERIOD_D1;                                          // Timeframe for MA
+INPUT2 ENUM_STG_META_MA_CONDITIONS_TYPE Meta_MA_Conditions_Type =
+    STG_META_MA_CONDITIONS_TYPE_DEMA;                      // Indicator MA type
+INPUT2 ENUM_TIMEFRAMES Meta_MA_Conditions_Tf = PERIOD_D1;  // Timeframe for MA
 INPUT3_GROUP("Meta MA Conditions strategy: common params");
 INPUT3 float Meta_MA_Conditions_LotSize = 0;                // Lot size
 INPUT3 int Meta_MA_Conditions_SignalOpenMethod = 0;         // Signal open method
