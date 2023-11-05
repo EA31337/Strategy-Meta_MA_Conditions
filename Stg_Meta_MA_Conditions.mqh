@@ -7,6 +7,12 @@
 #ifndef STG_META_MA_CONDITIONS_MQH
 #define STG_META_MA_CONDITIONS_MQH
 
+// MA conditions.
+enum ENUM_STG_META_MA_CONDITIONS_COND {
+  STG_META_MA_CONDITIONS_COND_0_NONE = 0,                    // None
+  STG_META_MA_CONDITIONS_COND_IS_PEAK = TRADE_COND_IS_PEAK,  // Oscillator value is at peak level
+};
+
 enum ENUM_STG_META_MA_CONDITIONS_TYPE {
   STG_META_MA_CONDITIONS_TYPE_0_NONE = 0,     // (None)
   STG_META_MA_CONDITIONS_TYPE_AMA,            // AMA: Adaptive Moving Average
@@ -22,8 +28,10 @@ enum ENUM_STG_META_MA_CONDITIONS_TYPE {
 
 // User input params.
 INPUT2_GROUP("Meta MA Conditions strategy: main params");
-INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_Main = STRAT_RSI;                // Main strategy
-INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_MA_Conditions = STRAT_MA_TREND;  // Strategy on MA cross
+INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_False = STRAT_OSCILLATOR_RANGE;  // Strategy when condition is False
+INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_True = STRAT_RSI;                // Strategy when condition is True
+INPUT2 ENUM_STG_META_MA_CONDITIONS_COND Meta_MA_Conditions_Condition =
+    STG_META_MA_CONDITIONS_COND_IS_PEAK;  // Oscillator condition
 INPUT2 ENUM_STG_META_MA_CONDITIONS_TYPE Meta_MA_Conditions_Type = STG_META_MA_CONDITIONS_TYPE_MA;  // Indicator MA type
 INPUT2 ENUM_TIMEFRAMES Meta_MA_Conditions_Tf = PERIOD_D1;                                          // Timeframe for MA
 INPUT3_GROUP("Meta MA Conditions strategy: common params");
@@ -159,8 +167,8 @@ class Stg_Meta_MA_Conditions : public Strategy {
    */
   void OnInit() {
     // Initialize strategies.
-    StrategyAdd(::Meta_MA_Conditions_Strategy_Main, 0);
-    StrategyAdd(::Meta_MA_Conditions_Strategy_MA_Conditions, 1);
+    StrategyAdd(::Meta_MA_Conditions_Strategy_False, 0);
+    StrategyAdd(::Meta_MA_Conditions_Strategy_True, 1);
     // Initialize indicators.
     switch (::Meta_MA_Conditions_Type) {
       case STG_META_MA_CONDITIONS_TYPE_AMA:  // AMA
@@ -320,25 +328,68 @@ class Stg_Meta_MA_Conditions : public Strategy {
   }
 
   /**
+   * Returns the highest bar's index (shift).
+   */
+  template <typename T>
+  int GetIndiHighest(int count = WHOLE_ARRAY, int start_bar = 0) {
+    IndicatorBase *_indi = GetIndicator(::Meta_MA_Conditions_Type);
+    int max_idx = -1;
+    double max = -DBL_MAX;
+    int last_bar = count == WHOLE_ARRAY ? (int)(_indi.GetBarShift(_indi.GetLastBarTime())) : (start_bar + count - 1);
+
+    for (int shift = start_bar; shift <= last_bar; ++shift) {
+      double value = _indi.GetEntry(shift).GetMax<T>(_indi.GetModeCount());
+      if (value > max) {
+        max = value;
+        max_idx = shift;
+      }
+    }
+
+    return max_idx;
+  }
+
+  /**
+   * Returns the lowest bar's index (shift).
+   */
+  template <typename T>
+  int GetIndiLowest(int count = WHOLE_ARRAY, int start_bar = 0) {
+    IndicatorBase *_indi = GetIndicator(::Meta_MA_Conditions_Type);
+    int min_idx = -1;
+    double min = DBL_MAX;
+    int last_bar = count == WHOLE_ARRAY ? (int)(_indi.GetBarShift(_indi.GetLastBarTime())) : (start_bar + count - 1);
+
+    for (int shift = start_bar; shift <= last_bar; ++shift) {
+      double value = _indi.GetEntry(shift).GetMin<T>(_indi.GetModeCount());
+      if (value < min) {
+        min = value;
+        min_idx = shift;
+      }
+    }
+
+    return min_idx;
+  }
+
+  /**
    * Gets strategy.
    */
   Ref<Strategy> GetStrategy(uint _shift = 0) {
-    IndicatorBase *_indi1 = GetIndicator(::Meta_MA_Conditions_Type);
-    IndicatorBase *_indi2 = GetIndicator(::Meta_MA_Conditions_Type + 1);
-    Ref<Strategy> _strat_ref = strats.GetByKey(0);
-    if (_indi1 == NULL || _indi2 == NULL) {
-      // Returns default strategy when indicators are not set.
-      return _strat_ref;
+    IndicatorBase *_indi = GetIndicator(::Meta_MA_Conditions_Type);
+    Chart *_chart = (Chart *)_indi;
+    uint _ishift = _shift;  // @fixme
+    bool _result = true;
+    // bool _result = _indi.GetFlag(INDI_ENTRY_FLAG_IS_VALID, _ishift) && _indi.GetFlag(INDI_ENTRY_FLAG_IS_VALID,
+    // _ishift + 1);
+    Ref<Strategy> _strat_ref;
+    switch (::Meta_MA_Conditions_Condition) {
+      case STG_META_MA_CONDITIONS_COND_IS_PEAK:
+        _result &= _indi[_ishift][0] >= GetIndiHighest<double>(4, _ishift) ||
+                   _indi[_ishift][0] <= GetIndiLowest<double>(4, _ishift);
+        break;
+      case STG_META_MA_CONDITIONS_COND_0_NONE:
+      default:
+        break;
     }
-    uint _ishift1 = ssparams.GetShift1();
-    uint _ishift2 = ssparams.GetShift2();
-    bool _is_cross = true;
-    _is_cross &= _indi1[_ishift1][0] > _indi2[_ishift2][0];
-    _is_cross &= _indi1[_ishift1 + 1][0] < _indi2[_ishift2 + 1][0];
-    if (_is_cross) {
-      // Returns different strategy on MA crossing.
-      _strat_ref = strats.GetByKey(1);
-    }
+    _strat_ref = strats.GetByKey(_result ? 1 : 0);
     return _strat_ref;
   }
 
