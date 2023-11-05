@@ -6,7 +6,7 @@
 
 /**
  * @file
- * Implements MA Cross meta strategy.
+ * Implements MA Conditions meta strategy.
  */
 
 // Includes the main code.
