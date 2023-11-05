@@ -9,8 +9,9 @@
 
 // MA conditions.
 enum ENUM_STG_META_MA_CONDITIONS_COND {
-  STG_META_MA_CONDITIONS_COND_0_NONE = 0,                    // None
-  STG_META_MA_CONDITIONS_COND_IS_PEAK = TRADE_COND_IS_PEAK,  // Oscillator value is at peak level
+  STG_META_MA_CONDITIONS_COND_0_NONE = 0,      // None
+  STG_META_MA_CONDITIONS_COND_IS_PEAK,         // MA value is at peak level
+  STG_META_MA_CONDITIONS_COND_IN_PRICE_RANGE,  // MA value within price range
 };
 
 enum ENUM_STG_META_MA_CONDITIONS_TYPE {
@@ -29,9 +30,9 @@ enum ENUM_STG_META_MA_CONDITIONS_TYPE {
 // User input params.
 INPUT2_GROUP("Meta MA Conditions strategy: main params");
 INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_False = STRAT_OSCILLATOR_RANGE;  // Strategy when condition is False
-INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_True = STRAT_RSI;                // Strategy when condition is True
+INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_True = STRAT_MFI;                // Strategy when condition is True
 INPUT2 ENUM_STG_META_MA_CONDITIONS_COND Meta_MA_Conditions_Condition =
-    STG_META_MA_CONDITIONS_COND_IS_PEAK;  // Oscillator condition
+    STG_META_MA_CONDITIONS_COND_IN_PRICE_RANGE;  // MA condition
 INPUT2 ENUM_STG_META_MA_CONDITIONS_TYPE Meta_MA_Conditions_Type = STG_META_MA_CONDITIONS_TYPE_MA;  // Indicator MA type
 INPUT2 ENUM_TIMEFRAMES Meta_MA_Conditions_Tf = PERIOD_D1;                                          // Timeframe for MA
 INPUT3_GROUP("Meta MA Conditions strategy: common params");
@@ -384,6 +385,9 @@ class Stg_Meta_MA_Conditions : public Strategy {
       case STG_META_MA_CONDITIONS_COND_IS_PEAK:
         _result &= _indi[_ishift][0] >= GetIndiHighest<double>(4, _ishift) ||
                    _indi[_ishift][0] <= GetIndiLowest<double>(4, _ishift);
+        break;
+      case STG_META_MA_CONDITIONS_COND_IN_PRICE_RANGE:
+        _result &= _indi[_ishift][0] < _chart.GetHigh() && _indi[_ishift][0] > _chart.GetLow();
         break;
       case STG_META_MA_CONDITIONS_COND_0_NONE:
       default:
