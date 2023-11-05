@@ -6,8 +6,8 @@
 
 /**
  * @file
- * Implements MA Cross meta strategy.
+ * Implements MA Conditions meta strategy.
  */
 
 // Includes the main code.
-#include "Stg_Meta_MA_Cross.mq5"
+#include "Stg_Meta_MA_Conditions.mq5"
