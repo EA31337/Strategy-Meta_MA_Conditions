@@ -29,8 +29,8 @@ enum ENUM_STG_META_MA_CONDITIONS_TYPE {
 
 // User input params.
 INPUT2_GROUP("Meta MA Conditions strategy: main params");
-INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_False = STRAT_RSI;   // Strategy when condition is False
-INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_True = STRAT_FORCE;  // Strategy when condition is True
+INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_False = STRAT_RSI;     // Strategy when condition is False
+INPUT2 ENUM_STRATEGY Meta_MA_Conditions_Strategy_True = STRAT_CHAIKIN;  // Strategy when condition is True
 INPUT2 ENUM_STG_META_MA_CONDITIONS_COND Meta_MA_Conditions_Condition =
     STG_META_MA_CONDITIONS_COND_IN_PRICE_RANGE;  // MA condition
 INPUT2 ENUM_STG_META_MA_CONDITIONS_TYPE Meta_MA_Conditions_Type =
